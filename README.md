@@ -11,4 +11,4 @@
 - **Tools:** Git, VS Code.
 
 ### 📱 Upcoming Projects
-- 🚧 **App Store & Google Play:** Currently developing my first mobile application.``
+- 🚧 **App Store & Google Play:** Currently developing my first mobile application.

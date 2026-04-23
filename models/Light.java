@@ -10,7 +10,7 @@ public class Light extends Device{
 
     @Override
     public void turnOn(){
-        this.status = "ON";
+        this.status = true;
         System.out.println(name + " in " + roomName + " is now ON.");
     }
 

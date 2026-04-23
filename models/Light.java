@@ -1,6 +1,8 @@
 package models;
 
 public class Light extends Device{
+    private static final long serialVersionUID = 1L;
+    
     private int brightness;
 
     public Light(int id,String name,String roomName){

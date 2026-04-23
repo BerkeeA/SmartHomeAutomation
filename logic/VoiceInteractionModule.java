@@ -1,6 +1,8 @@
 package logic;
 
-public class VoiceInteractionModule{
+public class VoiceInteractionModule implements java.io.Serializable{
+    private static final long serialVersionUID = 1L;
+    
     private String apiID;
     private String roomName;
     private boolean isActive;

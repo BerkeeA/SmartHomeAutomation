@@ -1,6 +1,8 @@
 package models;
 
 public class Door extends Device{
+    private static final long serialVersionUID = 1L;
+    
     private boolean isLocked;
 
     public Door(int id,String name,String roomName){

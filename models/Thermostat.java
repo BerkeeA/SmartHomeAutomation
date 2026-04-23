@@ -1,6 +1,8 @@
 package models;
 
 public class Thermostat extends Device{
+    private static final long serialVersionUID = 1L;
+    
     private int temperature;
 
     public Thermostat(int id, String name, String roomName){

@@ -3,7 +3,9 @@ package logic;
 import models.User;
 import models.Device;
 
-public class AIAssistant{
+public class AIAssistant implements java.io.Serializable{
+    private static final long serialVersionUID = 1L;
+    
     private int assistantID;
     private String name;
 

@@ -1,6 +1,8 @@
 package models;
 
-public abstract class Device{
+public abstract class Device implements java.io.Serializable{
+    private static final long serialVersionUID = 1L;
+    
     protected int id;
     protected String name;
     protected boolean status;

@@ -1,10 +1,15 @@
 import models.*;
 import logic.*;
+import ui.*;
 
 public class Main{
     public static void main(String[] args){
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            new SmartHomeGUI().setVisible(true);
+        });
+
         System.out.println("==========================================");
-        System.out.println("   SMART HOME SYSTEM TEST INITIATED     ");
+        System.out.println("   SMART HOME SYSTEM TEST INITIATED      ");
         System.out.println("==========================================");
 
         Admin admin=new Admin(1, "Berke", "1234", "Full_Access");
@@ -26,7 +31,7 @@ public class Main{
         String command="Turn on Living Room Lamp";
         voiceModule.receiveVoiceInput(command);
         
-        if (jarvis.authenticateVoice(admin)){
+        if (jarvis.authenticateVoice(admin)) {
             jarvis.processVoiceCommand(command);
             jarvis.executeAction(livingRoomLight);
             jarvis.updateDatabase(livingRoomLight);
@@ -37,8 +42,6 @@ public class Main{
         
         mainDoor.lock();
         mainDoor.turnOn(); 
-
-        admin.manageAI();
 
         System.out.println("\n==========================================");
         System.out.println("    ALL SYSTEM TESTS PASSED (MVP v1.0)    ");

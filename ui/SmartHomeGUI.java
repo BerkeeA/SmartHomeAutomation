@@ -115,51 +115,80 @@ public class SmartHomeGUI extends JFrame{
 }
 
     private JPanel createDashboard(){
-        JPanel dash=new JPanel(new BorderLayout());
-        
-        JPanel topBar=new JPanel(new BorderLayout());
-        topBar.setBackground(new Color(41, 128, 185));
-        topBar.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        JLabel welcome = new JLabel("Connected as: " + currentUser.getName() + " (" + (currentUser instanceof Admin ? "Administrator" : "Standard User") + ")");
-        welcome.setForeground(Color.WHITE);
-        JButton logoutBtn = new JButton("Logout");
-        logoutBtn.addActionListener(e -> {
-            logAction("User Logged Out");
-            cardLayout.show(mainPanel, "Login");
-        });
-        topBar.add(welcome, BorderLayout.WEST);
-        topBar.add(logoutBtn, BorderLayout.EAST);
-        dash.add(topBar, BorderLayout.NORTH);
+    JPanel dash=new JPanel(new BorderLayout());
+    
+    JPanel topBar=new JPanel(new BorderLayout());
+    topBar.setBackground(new Color(41, 128, 185));
+    topBar.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+    JLabel welcome=new JLabel("Connected as: " + currentUser.getName() + " (" + (currentUser instanceof Admin ? "Administrator" : "Standard User") + ")");
+    welcome.setForeground(Color.WHITE);
+    welcome.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    
+    JButton logoutBtn=new JButton("Logout");
+    logoutBtn.setFocusPainted(false);
+    logoutBtn.addActionListener(e -> {
+        logAction("User Logged Out");
+        cardLayout.show(mainPanel, "Login");
+    });
+    
+    topBar.add(welcome, BorderLayout.WEST);
+    topBar.add(logoutBtn, BorderLayout.EAST);
+    dash.add(topBar, BorderLayout.NORTH);
 
-        roomContainer=new JPanel(new GridLayout(0, 2, 15, 15));
-        updateDeviceView();
-        dash.add(new JScrollPane(roomContainer), BorderLayout.CENTER);
+    roomContainer=new JPanel(new GridLayout(0, 2, 15, 15));
+    roomContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    updateDeviceView();
+    dash.add(new JScrollPane(roomContainer), BorderLayout.CENTER);
 
-        JPanel bottomPanel=new JPanel(new BorderLayout());
-        JPanel voiceBar=new JPanel(new FlowLayout(FlowLayout.LEFT));
-        voiceBar.setBackground(new Color(52, 73, 94));
-        JLabel micLabel=new JLabel("[ MIC ]"); 
-        micLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
-        micLabel.setForeground(Color.ORANGE);
-        JTextField cmdField=new JTextField(45);
-        JButton sendBtn=new JButton("EXECUTE");
-        sendBtn.addActionListener(e -> { processVoiceCommand(cmdField.getText()); cmdField.setText(""); });
-        voiceBar.add(micLabel); voiceBar.add(new JLabel(" Voice Command: "));
-        voiceBar.add(cmdField); voiceBar.add(sendBtn);
-
-        aiLogArea=new JTextArea(8, 50);
-        aiLogArea.setEditable(false);
-        aiLogArea.setBackground(Color.BLACK);
-        aiLogArea.setForeground(new Color(0, 255, 65));
-        bottomPanel.add(voiceBar, BorderLayout.NORTH);
-        bottomPanel.add(new JScrollPane(aiLogArea), BorderLayout.CENTER);
-        dash.add(bottomPanel, BorderLayout.SOUTH);
-
-        if (currentUser instanceof Admin){
-            dash.add(createAdminSidebar((Admin)currentUser), BorderLayout.EAST);
+    JPanel bottomPanel=new JPanel(new BorderLayout());
+    
+    JPanel voiceBar=new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+    voiceBar.setBackground(new Color(52, 73, 94));
+    
+    JLabel micLabel=new JLabel("[ MIC ]"); 
+    micLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
+    micLabel.setForeground(Color.ORANGE);
+    
+    JLabel voiceLabel=new JLabel("Voice Command:");
+    voiceLabel.setForeground(Color.WHITE);
+    voiceLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    
+    JTextField cmdField=new JTextField(35);
+    cmdField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    
+    JButton sendBtn=new JButton("EXECUTE");
+    sendBtn.setBackground(new Color(46, 204, 113));
+    sendBtn.setForeground(Color.WHITE);
+    sendBtn.setFocusPainted(false);
+    sendBtn.addActionListener(e -> { 
+        if(!cmdField.getText().isEmpty()) {
+            processVoiceCommand(cmdField.getText()); 
+            cmdField.setText(""); 
         }
-        return dash;
+    });
+
+    voiceBar.add(micLabel); 
+    voiceBar.add(voiceLabel); 
+    voiceBar.add(cmdField); 
+    voiceBar.add(sendBtn);
+
+    aiLogArea=new JTextArea(8, 50);
+    aiLogArea.setEditable(false);
+    aiLogArea.setBackground(Color.BLACK);
+    aiLogArea.setForeground(new Color(0, 255, 65));
+    aiLogArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    aiLogArea.setMargin(new Insets(10, 10, 10, 10));
+    
+    bottomPanel.add(voiceBar, BorderLayout.NORTH);
+    bottomPanel.add(new JScrollPane(aiLogArea), BorderLayout.CENTER);
+    dash.add(bottomPanel, BorderLayout.SOUTH);
+
+    if (currentUser instanceof Admin){
+        dash.add(createAdminSidebar((Admin)currentUser), BorderLayout.EAST);
     }
+    
+    return dash;
+}
 
     private void processVoiceCommand(String cmd){
         String input=cmd.toLowerCase();
@@ -278,40 +307,76 @@ public class SmartHomeGUI extends JFrame{
         return side;
     }
 
-    private void updateDeviceView() {
-        roomContainer.removeAll();
-        String[] rooms={"Living Room", "Kitchen", "Bedroom", "Bathroom", "Entrance"};
-        for (String r : rooms) {
-            JPanel p = new JPanel(); p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-            p.setBorder(BorderFactory.createTitledBorder(r));
-            for (Device d : devices) {
-                if (d.getRoomName().equals(r)) {
-                    JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                    JButton b = new JButton(d.getStatus() ? "ON" : "OFF");
-                    b.setBackground(d.getStatus() ? Color.GREEN : Color.LIGHT_GRAY);
-                    b.addActionListener(x -> { 
-                        if(d.getStatus()) { d.turnOff(); logAction("Manual: Turned OFF " + d.getName()); }
-                        else { d.turnOn(); logAction("Manual: Turned ON " + d.getName()); }
-                        updateDeviceView(); 
+    private void updateDeviceView(){
+    roomContainer.removeAll();
+    String[] rooms = {"Living Room", "Kitchen", "Bedroom", "Bathroom", "Entrance"};
+    
+    for (String r : rooms){
+        JPanel p=new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setBorder(BorderFactory.createTitledBorder(r));
+        
+        for (Device d : devices){
+            if (d.getRoomName().equals(r)) {
+                JPanel row=new JPanel(new FlowLayout(FlowLayout.LEFT));
+                JButton b=new JButton(d.getStatus() ? "ON" : "OFF");
+                b.setBackground(d.getStatus() ? Color.GREEN : Color.LIGHT_GRAY);
+                
+                b.addActionListener(x -> { 
+                    if(d.getStatus()) { 
+                        d.turnOff(); 
+                        logAction("Manual: Turned OFF " + d.getName()); 
+                    } else{ 
+                        d.turnOn(); 
+                        logAction("Manual: Turned ON " + d.getName()); 
+                    }
+                    updateDeviceView(); 
+                });
+                
+                row.add(new JLabel(d.getName())); 
+                row.add(b);
+                
+                if(d instanceof Light) {
+                    Light l=(Light)d;
+                    JLabel valLabel=new JLabel(l.getBrightness() + "%");
+                    JSlider s=new JSlider(0, 100, l.getBrightness());
+                    
+                    s.addChangeListener(z -> { 
+                        l.adjustBrightness(s.getValue());
+                        valLabel.setText(s.getValue() + "%");
+                        if(!s.getValueIsAdjusting()) {
+                            logAction("Manual: Adjusted " + d.getName() + " brightness to " + s.getValue() + "%");
+                        }
                     });
-                    row.add(new JLabel(d.getName())); row.add(b);
-                    if(d instanceof Light) {
-                        Light l = (Light)d; JSlider s = new JSlider(0, 100, l.getBrightness());
-                        s.addChangeListener(z -> { l.adjustBrightness(s.getValue()); if(!s.getValueIsAdjusting()) logAction("Manual: Adjusted " + d.getName() + " brightness to " + s.getValue() + "%"); });
-                        row.add(s); row.add(new JLabel(l.getBrightness() + "%"));
-                    }
-                    if(d instanceof Thermostat) {
-                        Thermostat t = (Thermostat)d; JSlider s = new JSlider(15, 32, t.getTemperature());
-                        s.addChangeListener(z -> { t.setTemperature(s.getValue()); if(!s.getValueIsAdjusting()) logAction("Manual: Adjusted " + d.getName() + " temp to " + s.getValue() + "°C"); });
-                        row.add(s); row.add(new JLabel(t.getTemperature() + "°C"));
-                    }
-                    p.add(row);
+                    
+                    row.add(s); 
+                    row.add(valLabel);
                 }
+                
+                if(d instanceof Thermostat){
+                    Thermostat t=(Thermostat)d;
+                    JLabel valLabel=new JLabel(t.getTemperature() + "°C");
+                    JSlider s=new JSlider(15, 32, t.getTemperature());
+                    
+                    s.addChangeListener(z -> { 
+                        t.setTemperature(s.getValue());
+                        valLabel.setText(s.getValue() + "°C");
+                        if(!s.getValueIsAdjusting()){
+                            logAction("Manual: Adjusted " + d.getName() + " temp to " + s.getValue() + "°C");
+                        }
+                    });
+                    
+                    row.add(s); 
+                    row.add(valLabel);
+                }
+                p.add(row);
             }
-            roomContainer.add(p);
         }
-        roomContainer.revalidate(); roomContainer.repaint();
+        roomContainer.add(p);
     }
+    roomContainer.revalidate(); 
+    roomContainer.repaint();
+}
 
     private void saveData() {
         try (ObjectOutputStream u = new ObjectOutputStream(new FileOutputStream("users.dat"));

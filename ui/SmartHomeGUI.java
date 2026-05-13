@@ -115,118 +115,159 @@ public class SmartHomeGUI extends JFrame{
 }
 
     private JPanel createDashboard(){
-    JPanel dash=new JPanel(new BorderLayout());
-    
-    JPanel topBar=new JPanel(new BorderLayout());
-    topBar.setBackground(new Color(41, 128, 185));
-    topBar.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-    JLabel welcome=new JLabel("Connected as: " + currentUser.getName() + " (" + (currentUser instanceof Admin ? "Administrator" : "Standard User") + ")");
-    welcome.setForeground(Color.WHITE);
-    welcome.setFont(new Font("Segoe UI", Font.BOLD, 14));
-    
-    JButton logoutBtn=new JButton("Logout");
-    logoutBtn.setFocusPainted(false);
-    logoutBtn.addActionListener(e -> {
-        logAction("User Logged Out");
-        cardLayout.show(mainPanel, "Login");
-    });
-    
-    topBar.add(welcome, BorderLayout.WEST);
-    topBar.add(logoutBtn, BorderLayout.EAST);
-    dash.add(topBar, BorderLayout.NORTH);
+        JPanel dash=new JPanel(new BorderLayout());
+        
+        JPanel topBar=new JPanel(new BorderLayout());
+        topBar.setBackground(new Color(41, 128, 185));
+        topBar.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        JLabel welcome=new JLabel("Connected as: " + currentUser.getName() + " (" + (currentUser instanceof Admin ? "Administrator" : "Standard User") + ")");
+        welcome.setForeground(Color.WHITE);
+        welcome.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        
+        JButton logoutBtn=new JButton("Logout");
+        logoutBtn.setFocusPainted(false);
+        logoutBtn.addActionListener(e -> {
+            logAction("User Logged Out");
+            cardLayout.show(mainPanel, "Login");
+        });
+        
+        topBar.add(welcome, BorderLayout.WEST);
+        topBar.add(logoutBtn, BorderLayout.EAST);
+        dash.add(topBar, BorderLayout.NORTH);
 
-    roomContainer=new JPanel(new GridLayout(0, 2, 15, 15));
-    roomContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    updateDeviceView();
-    dash.add(new JScrollPane(roomContainer), BorderLayout.CENTER);
+        roomContainer=new JPanel(new GridLayout(0, 2, 15, 15));
+        roomContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        updateDeviceView();
+        dash.add(new JScrollPane(roomContainer), BorderLayout.CENTER);
 
-    JPanel bottomPanel=new JPanel(new BorderLayout());
-    
-    JPanel voiceBar=new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
-    voiceBar.setBackground(new Color(52, 73, 94));
-    
-    JLabel micLabel=new JLabel("[ MIC ]"); 
-    micLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
-    micLabel.setForeground(Color.ORANGE);
-    
-    JLabel voiceLabel=new JLabel("Voice Command:");
-    voiceLabel.setForeground(Color.WHITE);
-    voiceLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-    
-    JTextField cmdField=new JTextField(35);
-    cmdField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-    
-    JButton sendBtn=new JButton("EXECUTE");
-    sendBtn.setBackground(new Color(46, 204, 113));
-    sendBtn.setForeground(Color.WHITE);
-    sendBtn.setFocusPainted(false);
-    sendBtn.addActionListener(e -> { 
-        if(!cmdField.getText().isEmpty()) {
-            processVoiceCommand(cmdField.getText()); 
-            cmdField.setText(""); 
+        JPanel bottomPanel=new JPanel(new BorderLayout());
+        JPanel voiceBar=new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+        voiceBar.setBackground(new Color(52, 73, 94));
+        
+        JButton micBtn = new JButton("LISTEN");
+        micBtn.setBackground(new Color(41, 128, 185));
+        micBtn.setForeground(Color.WHITE);
+        micBtn.setFocusPainted(false);
+        micBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        
+        JLabel voiceLabel=new JLabel("Voice Command:");
+        voiceLabel.setForeground(Color.WHITE);
+        voiceLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        
+        JTextField cmdField=new JTextField(35);
+        cmdField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        
+        JButton sendBtn=new JButton("EXECUTE");
+        sendBtn.setBackground(new Color(46, 204, 113));
+        sendBtn.setForeground(Color.WHITE);
+        sendBtn.setFocusPainted(false);
+
+        micBtn.addActionListener(e -> {
+            micBtn.setEnabled(false);
+            micBtn.setText("LISTENING...");
+            micBtn.setBackground(Color.RED);
+            aiLogArea.append("[SYSTEM] Voice engine activated. Speak now.\n");
+            new Thread(() -> {
+                String result = SpeechToTextService.convertAudioToText("");
+                SwingUtilities.invokeLater(() -> {
+                    cmdField.setText(result);
+                    processVoiceCommand(result);
+                    micBtn.setEnabled(true);
+                    micBtn.setText("LISTEN");
+                    micBtn.setBackground(new Color(41, 128, 185));
+                });
+            }).start();
+        });
+
+        sendBtn.addActionListener(e -> { 
+            if(!cmdField.getText().isEmpty()) {
+                processVoiceCommand(cmdField.getText()); 
+                cmdField.setText(""); 
+            }
+        });
+
+        voiceBar.add(micBtn); 
+        voiceBar.add(voiceLabel); 
+        voiceBar.add(cmdField); 
+        voiceBar.add(sendBtn);
+
+        aiLogArea=new JTextArea(8, 50);
+        aiLogArea.setEditable(false);
+        aiLogArea.setBackground(Color.BLACK);
+        aiLogArea.setForeground(new Color(0, 255, 65));
+        aiLogArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        aiLogArea.setMargin(new Insets(10, 10, 10, 10));
+        
+        bottomPanel.add(voiceBar, BorderLayout.NORTH);
+        bottomPanel.add(new JScrollPane(aiLogArea), BorderLayout.CENTER);
+        dash.add(bottomPanel, BorderLayout.SOUTH);
+
+        if (currentUser instanceof Admin) {
+            dash.add(createAdminSidebar((Admin)currentUser), BorderLayout.EAST);
         }
-    });
-
-    voiceBar.add(micLabel); 
-    voiceBar.add(voiceLabel); 
-    voiceBar.add(cmdField); 
-    voiceBar.add(sendBtn);
-
-    aiLogArea=new JTextArea(8, 50);
-    aiLogArea.setEditable(false);
-    aiLogArea.setBackground(Color.BLACK);
-    aiLogArea.setForeground(new Color(0, 255, 65));
-    aiLogArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-    aiLogArea.setMargin(new Insets(10, 10, 10, 10));
-    
-    bottomPanel.add(voiceBar, BorderLayout.NORTH);
-    bottomPanel.add(new JScrollPane(aiLogArea), BorderLayout.CENTER);
-    dash.add(bottomPanel, BorderLayout.SOUTH);
-
-    if (currentUser instanceof Admin){
-        dash.add(createAdminSidebar((Admin)currentUser), BorderLayout.EAST);
+        
+        return dash;
     }
+
+    private void processVoiceCommand(String cmd) {
+    String input=cmd.toLowerCase();
+    aiLogArea.append("> NLP Processing: \"" + cmd + "\"\n");
     
-    return dash;
-}
+    if (new AIAssistant(1, "Jarvis").authenticateVoice(currentUser)) {
+        boolean found=false;
+        int extractedValue=-1;
+        
+        Pattern p=Pattern.compile("\\d+");
+        Matcher m=p.matcher(input);
+        if (m.find()) extractedValue = Integer.parseInt(m.group());
 
-    private void processVoiceCommand(String cmd){
-        String input=cmd.toLowerCase();
-        aiLogArea.append("> NLP Processing: \"" + cmd + "\"\n");
-        if (new AIAssistant(1, "Jarvis").authenticateVoice(currentUser)) {
-            boolean found=false;
-            int extractedValue=-1;
-            Pattern p=Pattern.compile("\\d+");
-            Matcher m=p.matcher(input);
-            if (m.find()) extractedValue=Integer.parseInt(m.group());
+        for (Device d : devices) {
+            String room=d.getRoomName().toLowerCase();
+            String deviceName=d.getName().toLowerCase();
 
-            for (Device d : devices){
-                if (input.contains(d.getRoomName().toLowerCase()) && input.contains(d.getName().toLowerCase())) {
-                    if (extractedValue != -1) {
-                        if (d instanceof Light) {
-                            ((Light) d).adjustBrightness(Math.min(100, Math.max(0, extractedValue)));
-                            logAction("AI adjusted " + d.getRoomName() + " " + d.getName() + " to " + extractedValue + "%");
-                        } else if (d instanceof Thermostat) {
-                            ((Thermostat) d).setTemperature(Math.min(32, Math.max(15, extractedValue)));
-                            logAction("AI adjusted " + d.getRoomName() + " " + d.getName() + " to " + extractedValue + "°C");
-                        }
-                        found=true;
-                    } 
-                    if (input.contains("on") || input.contains("open")){
-                        d.turnOn();
-                        logAction("AI turned ON " + d.getRoomName() + " " + d.getName());
-                        found=true;
-                    } else if (input.contains("off") || input.contains("close")) {
-                        d.turnOff();
-                        logAction("AI turned OFF " + d.getRoomName() + " " + d.getName());
+            boolean roomMatch = input.contains(room) || 
+                               (room.contains("living") && (input.contains("salon") || input.contains("oturma"))) ||
+                               (room.contains("kitchen") && input.contains("mutfak")) ||
+                               (room.contains("bedroom") && (input.contains("yatak") || input.contains("uyku"))) ||
+                               (room.contains("bathroom") && (input.contains("banyo") || input.contains("wc"))) ||
+                               (room.contains("entrance") && (input.contains("giriş") || input.contains("antre") || input.contains("hol")));
+
+            boolean deviceMatch = input.contains(deviceName) || 
+                                 (d instanceof Light && (input.contains("light") || input.contains("lamba") || input.contains("ışık") || input.contains("parlaklık") || input.contains("brightness") || input.contains("lamp"))) || 
+                                 (d instanceof Thermostat && (input.contains("ac") || input.contains("klima") || input.contains("ısı") || input.contains("sıcaklık") || input.contains("derece") || input.contains("degree") || input.contains("celsius"))) ||
+                                 (d instanceof Door && (input.contains("door") || input.contains("kapı") || input.contains("kilit")));
+
+            if (roomMatch && deviceMatch) {
+                if (extractedValue != -1) {
+                    if (d instanceof Light) {
+                        ((Light) d).adjustBrightness(Math.min(100, Math.max(0, extractedValue)));
+                        logAction("AI adjusted " + d.getRoomName() + " " + d.getName() + " to " + extractedValue + "%");
+                        found = true;
+                    } else if (d instanceof Thermostat) {
+                        ((Thermostat) d).setTemperature(Math.min(32, Math.max(15, extractedValue)));
+                        logAction("AI adjusted " + d.getRoomName() + " " + d.getName() + " to " + extractedValue + "°C");
                         found=true;
                     }
                 }
+                
+                if (input.contains("on") || input.contains("open") || input.contains("aç") || input.contains("yak") || input.contains("unlock") || input.contains("çöz")) {
+                    d.turnOn();
+                    logAction("AI set ON/OPEN for " + d.getRoomName() + " " + d.getName());
+                    found=true;
+                } else if (input.contains("off") || input.contains("close") || input.contains("kapat") || input.contains("söndür") || input.contains("lock") || input.contains("kilitle")) {
+                    d.turnOff();
+                    logAction("AI set OFF/CLOSE for " + d.getRoomName() + " " + d.getName());
+                    found=true;
+                }
             }
-            if (!found) aiLogArea.append("[AI ERROR] Device or room not recognized.\n");
-            updateDeviceView();
         }
+        
+        if (!found) {
+            aiLogArea.append("[AI ERROR] Command could not be mapped to a device or action.\n");
+        }
+        updateDeviceView();
     }
+}
 
     private JPanel createAdminSidebar(Admin adm) {
         JPanel side=new JPanel();
